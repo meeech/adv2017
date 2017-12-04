@@ -4,6 +4,11 @@ const input_sample = `5 1 9 5
 2 4 6 8
 `;
 
+const input_sample_bonus = `5 9 2 8
+9 4 7 3
+3 8 6 5
+`;
+
 const input_real = `278	1689	250	1512	1792	1974	175	1639	235	1635	1690	1947	810	224	928	859
 160	50	55	81	68	130	145	21	211	136	119	78	174	155	149	72
 4284	185	4499	273	4750	4620	4779	4669	2333	231	416	1603	197	922	5149	2993
@@ -22,37 +27,53 @@ const input_real = `278	1689	250	1512	1792	1974	175	1639	235	1635	1690	1947	810	
 114	605	94	136	96	167	553	395	164	159	284	104	530	551	544	18
 `;
 
-
 const line_ending = '\n';
 const number_break = ' ';
-function main(data) {
+
+function main(data, reducer) {
   const lines = data.split(line_ending);
+  return lines.reduce(reducer, 0);
+}
 
-  return lines.reduce(function(sum, line){
-    if(line == '') return sum;
-    // console.log(line);
+function reducer_basic(sum, line) {
+  if(line == '') return sum;
+  let numbers = clean_numbers(line);
+  let min = Math.min.apply({}, numbers);
+  let max = Math.max.apply({}, numbers);
+  return sum + (max - min);
+}
 
-    let final = sanitize(line).split(number_break).reduce(function(minmax, value){
-      value = parseInt(value, 10);
-      // console.log('[minmax, value]', minmax, value);
-      if(value == '') {
-        return minmax;
-      }
-      minmax.max = (minmax.max < value) ? value: minmax.max;
-      minmax.min = (minmax.min > value) ? value: minmax.min;
-      return minmax;
-    }, { max: -1, min: 10000000 });
+function reducer_divis(sum, line) {
+  if(line == '') return sum;
+  let numbers = clean_numbers(line);
 
-    sum = sum + (final.max - final.min);
-    return sum;
+  return sum + numbers.reduce((acc, divisor) => {
+    let second = numbers.find((to_devide) => {
+      if(divisor >= to_devide) return;
+      return to_devide % divisor == 0;
+    });
+    if(second != undefined) {
+      acc = second / divisor;
+    }
+    return acc;
   }, 0);
+}
+
+// helpers
+function clean_numbers(line) {
+  return sanitize(line).split(number_break).map((value)=> parseInt(value, 10));
 }
 
 function sanitize(line) {
   return line.replace(/\t/g, ' ');
 }
 
-console.log(main(input_sample) == 18);
-console.log(main(input_real) == 42378);
+
+console.log(main(input_sample, reducer_basic) == 18);
+console.log(main(input_real, reducer_basic) == 42378);
+
+console.log(main(input_sample_bonus, reducer_divis) == 9);
+console.log(main(input_real, reducer_divis) === 246);
+
 
 
