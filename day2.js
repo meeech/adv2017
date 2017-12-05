@@ -68,7 +68,6 @@ function sanitize(line) {
   return line.replace(/\t/g, ' ');
 }
 
-
 console.log(main(input_sample, reducer_basic) == 18);
 console.log(main(input_real, reducer_basic) == 42378);
 
